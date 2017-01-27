@@ -1,4 +1,6 @@
 assignments = []
+rows = 'ABCDEFGHI'
+cols = '123456789'
 
 def assign_value(values, box, value):
     """
@@ -24,7 +26,17 @@ def naked_twins(values):
 
 def cross(A, B):
     "Cross product of elements in A and elements in B."
-    pass
+    return [s + t for s in A for t in B]
+
+boxes = cross(rows, cols)
+
+row_units = [cross(r, cols) for r in rows]
+column_units = [cross(rows, c) for c in cols]
+square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
+unitlist = row_units + column_units + square_units
+units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
+peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
+
 
 def grid_values(grid):
     """
@@ -36,7 +48,15 @@ def grid_values(grid):
             Keys: The boxes, e.g., 'A1'
             Values: The value in each box, e.g., '8'. If the box has no value, then the value will be '123456789'.
     """
-    pass
+    chars = []
+    digits = '123456789'
+    for c in grid:
+        if c in digits:
+            chars.append(c)
+        if c == '.':
+            chars.append(digits)
+    assert len(chars) == 81
+    return dict(zip(boxes, chars))
 
 def display(values):
     """
@@ -44,19 +64,70 @@ def display(values):
     Args:
         values(dict): The sudoku in dictionary form
     """
-    pass
+    width = 1 + max(len(values[s]) for s in boxes)
+    line = '+'.join(['-' * (width * 3)] * 3)
+    for r in rows:
+        print(''.join(values[r + c].center(width) + ('|' if c in '36' else '')
+                      for c in cols))
+        if r in 'CF': print(line)
+    print
 
 def eliminate(values):
-    pass
+    for i, j in values.items():
+        if len(j) ==1:
+            ttt=j
+            key_list =peers[i]
+            for x in key_list:
+                values[x]=values[x].replace(ttt,'')
+    return values
 
 def only_choice(values):
-    pass
+    new_values = values.copy()  # note: do not modify original values
+    from collections import Counter
+    for x in range(9):
+        key_list = square_units[x]
+        val_l = []
+        for y in key_list:
+            if len(new_values[y]) > 1:
+                val_l += new_values[y]
+        a = [k for k, v in Counter(val_l).items() if v == 1]
+        for y in key_list:
+            for z in a:
+                if z in new_values[y]:
+                    new_values[y] = z
+    return new_values
 
 def reduce_puzzle(values):
-    pass
+    stalled = False
+    while not stalled:
+        # Check how many boxes have a determined value
+        solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
+
+        # Your code here: Use the Eliminate Strategy
+        eliminate(values)
+        # Your code here: Use the Only Choice Strategy
+        only_choice(values)
+        # Check how many boxes have a determined value, to compare
+        solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
+        # If no new values were added, stop the loop.
+        stalled = solved_values_before == solved_values_after
+        # Sanity check, return False if there is a box with zero available values:
+        if len([box for box in values.keys() if len(values[box]) == 0]):
+            return False
+    return values
 
 def search(values):
-    pass
+    min_length=9
+    for key,value in values.items():
+            if len(value)<=min_length and len(value)>1 :
+                min_key = key
+                min_length = len(value)
+    for value in values[min_key]:
+        new_values = values.copy()
+        new_values[min_key]=value
+        solvef = solve(new_values)
+        if solvef:
+            return solvef
 
 def solve(grid):
     """
@@ -67,6 +138,15 @@ def solve(grid):
     Returns:
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
+    grid = reduce_puzzle(grid)
+    if grid is False:
+        return False ## Failed earlier
+    vlen=0
+    for ivalue in grid.values():
+        vlen+=len(ivalue)
+    if vlen == 81:
+        return grid
+    # Choose one of the unfilled squares with the fewest possibilities
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
