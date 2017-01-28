@@ -3,11 +3,11 @@
 
 # Question 1 (Naked Twins)
 Q: How do we use constraint propagation to solve the naked twins problem?  
-A: *Student should provide answer here*
+A: Naked twins it is more general only choice strategy: if we have only two choices in two boxes it is means that theses choices could not be used in other boxes. When we propagate this constraints on other boxes, we reduce possible options and make task easer and faster to solve
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
-A: *Student should provide answer here*
+A: Diagonal condition is additional constraint. To include this constaints we should declare it (diag_units) and include to unitlist. Then when we solve the Sudoku, we will see this constraints thru untlist and peers.
 
 ### Install
 
