@@ -1,4 +1,5 @@
 assignments = []
+
 rows = 'ABCDEFGHI'
 cols = '123456789'
 
@@ -21,8 +22,21 @@ def naked_twins(values):
         the values dictionary with the naked twins eliminated from peers.
     """
 
-    # Find all instances of naked twins
-    # Eliminate the naked twins as possibilities for their peers
+    # Find all instances of naked twins. Here we are solving only for twins, not for triplets or quads
+    new_values = values.copy()  # note: do not modify original values
+    from collections import Counter
+    for unit in unitlist:
+        val_l = []
+        for y in unit:
+            if len(new_values[y]) == 2:
+                val_l += [new_values[y]]
+        a = [k for k, v in Counter(val_l).items() if v == 2]
+        # Eliminate the naked twins as possibilities for their peers
+        for y in unit:
+            for z in a:
+                if z in new_values[y] and len(new_values[y])>2:
+                    new_values[y] = new_values[y].replace(z,'')
+    return new_values
 
 def cross(A, B):
     "Cross product of elements in A and elements in B."
@@ -33,10 +47,10 @@ boxes = cross(rows, cols)
 row_units = [cross(r, cols) for r in rows]
 column_units = [cross(rows, c) for c in cols]
 square_units = [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')]
-unitlist = row_units + column_units + square_units
+diag_units =  [[boxes[i] for i in range(0,81,10)] ,  [boxes[i] for i in range(8,80,8)]] # add additional constraints
+unitlist = row_units + column_units + square_units + diag_units # including the diagonals constr here
 units = dict((s, [u for u in unitlist if s in u]) for s in boxes)
 peers = dict((s, set(sum(units[s],[]))-set([s])) for s in boxes)
-
 
 def grid_values(grid):
     """
@@ -75,24 +89,25 @@ def display(values):
 def eliminate(values):
     for i, j in values.items():
         if len(j) ==1:
-            ttt=j
             key_list =peers[i]
             for x in key_list:
-                values[x]=values[x].replace(ttt,'')
+                values[x]=values[x].replace(j,'')
     return values
 
 def only_choice(values):
     new_values = values.copy()  # note: do not modify original values
     from collections import Counter
-    for x in range(9):
-        key_list = square_units[x]
+    for unit in unitlist:
         val_l = []
-        for y in key_list:
-            if len(new_values[y]) > 1:
-                val_l += new_values[y]
+        a = []
+        for y in unit:
+            # Calculate Nb of occurrences of each value inside unit
+            val_l += new_values[y]
+        #Create list of Nb there are unique
         a = [k for k, v in Counter(val_l).items() if v == 1]
-        for y in key_list:
+        for y in unit:
             for z in a:
+                #replace number in boxes where is unique value by this value
                 if z in new_values[y]:
                     new_values[y] = z
     return new_values
@@ -117,15 +132,25 @@ def reduce_puzzle(values):
     return values
 
 def search(values):
+    values = reduce_puzzle(values)
+    if values is False:
+        return False  ## Failed earlier
+    vlen = 0
+    for ivalue in values.values():
+        vlen += len(ivalue)
+    if vlen == 81:
+        return values
+    # Choose one of the unfilled squares with the fewest possibilities
     min_length=9
     for key,value in values.items():
             if len(value)<=min_length and len(value)>1 :
                 min_key = key
                 min_length = len(value)
+    # Recursion to try to solve it by tree searching
     for value in values[min_key]:
         new_values = values.copy()
         new_values[min_key]=value
-        solvef = solve(new_values)
+        solvef = search(new_values)
         if solvef:
             return solvef
 
@@ -138,15 +163,10 @@ def solve(grid):
     Returns:
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
-    grid = reduce_puzzle(grid)
-    if grid is False:
-        return False ## Failed earlier
-    vlen=0
-    for ivalue in grid.values():
-        vlen+=len(ivalue)
-    if vlen == 81:
-        return grid
-    # Choose one of the unfilled squares with the fewest possibilities
+    #translate from string representation to dict to solve it further
+    values = grid_values(grid)
+    return search(values)
+
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
