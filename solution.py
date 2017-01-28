@@ -23,20 +23,22 @@ def naked_twins(values):
     """
 
     # Find all instances of naked twins. Here we are solving only for twins, not for triplets or quads
-    new_values = values.copy()  # note: do not modify original values
     from collections import Counter
     for unit in unitlist:
         val_l = []
         for y in unit:
-            if len(new_values[y]) == 2:
-                val_l += [new_values[y]]
+            if len(values[y]) == 2:
+                val_l += [values[y]]
         a = [k for k, v in Counter(val_l).items() if v == 2]
         # Eliminate the naked twins as possibilities for their peers
         for y in unit:
             for z in a:
-                if z in new_values[y] and len(new_values[y])>2:
-                    new_values[y] = new_values[y].replace(z,'')
-    return new_values
+                ##Deparce twins into simple numbers
+                for yy in z:
+                    # Eliminate the naked twins
+                    if yy in values[y] and len(values[y])>2:
+                        values[y] = values[y].replace(yy,'')
+    return values
 
 def cross(A, B):
     "Cross product of elements in A and elements in B."
@@ -95,22 +97,21 @@ def eliminate(values):
     return values
 
 def only_choice(values):
-    new_values = values.copy()  # note: do not modify original values
     from collections import Counter
     for unit in unitlist:
         val_l = []
         a = []
         for y in unit:
             # Calculate Nb of occurrences of each value inside unit
-            val_l += new_values[y]
+            val_l += values[y]
         #Create list of Nb there are unique
         a = [k for k, v in Counter(val_l).items() if v == 1]
         for y in unit:
             for z in a:
                 #replace number in boxes where is unique value by this value
-                if z in new_values[y]:
-                    new_values[y] = z
-    return new_values
+                if z in values[y]:
+                    values[y] = z
+    return values
 
 def reduce_puzzle(values):
     stalled = False
@@ -122,6 +123,8 @@ def reduce_puzzle(values):
         eliminate(values)
         # Your code here: Use the Only Choice Strategy
         only_choice(values)
+        # Your code here: Use the Naked Twins Strategy
+        naked_twins(values)
         # Check how many boxes have a determined value, to compare
         solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
         # If no new values were added, stop the loop.
