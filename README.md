@@ -7,7 +7,7 @@ A: Naked twins it is more general only choice strategy: if we have only two equa
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
-A: In the diagonal sudoku we should add additional constraint: among the two main diagonals, the numbers 1 to 9 should all appear exactly once. To include this constaints we should declare it (diag_units) and include to unitlist. Then when we solve the Sudoku, we will see this constraints thru untlist and peers. This additional constraint could be a challenge for human, but for our agent is the good thing because it reduce the variability of possible solutions and could make solving process more faster. 
+A: In the diagonal sudoku we should add additional constraint: among the two main diagonals, the numbers 1 to 9 should all appear exactly once. To include this constaints we should declare it (diag_units) and include to unitlist. It is enough for our strategy solving functions (eliminate, only choice and naked twins) to solve diagonal sudoku. This additional constraint could be a challenge for human, but for our agent is the good thing because it reduce the variability of possible solutions and could reduce the number of iterations to solve sudoku. 
 
 ### Install
 
